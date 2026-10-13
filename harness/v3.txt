@@ -1,0 +1,19 @@
+[과제 v3 - 고해상도 타일 + 치수 도면, 숫자만 믿기]
+도면 한 장을 통째로 보면 작은 치수 숫자를 못 읽는다. 그래서 각 층을 (1) 전체 보기(overview)와 (2) 고해상도 4분할 타일(NW/NE/SW/SE, 서로 약간 겹침)로 준다.
+또 층마다 마감 코드가 적힌 KEY MARK & MATERIAL 평면도(*_material)와 치수가 적힌 DIMENSION PLAN(*_dimension)이 있다. 두 도면은 같은 평면이다.
+절차:
+1) overview로 실 배치와 각 실의 바닥 코드 태그를 파악한다(material 도면).
+2) dimension 타일에서 각 실의 가로·세로 치수(mm 숫자)를 읽는다. 눈대중·자로 재기 금지. 반드시 적힌 숫자로 계산.
+3) 실 치수가 없으면 그리드(기둥 중심선) 치수 숫자로 계산하고 basis에 'grid'라고 표시.
+4) 그래도 숫자가 없으면 area_m2를 null로 두고 confidence를 'unknown'으로.
+5) 근거(basis)에는 어느 타일 파일에서 어떤 숫자를 읽어 어떻게 곱했는지 적어라. 예: "2F_dimension_NW: 6830 x 4000".
+코드: DE-01, DT-01, DT-02, DT-03, CT-01, CT-02, CT-03
+[입력 파일]
+overview\material_list.jpg
+overview\B1_material.jpg, overview\2F_material.jpg, overview\3F_material.jpg
+overview\B1_dimension.jpg, overview\2F_dimension.jpg, overview\3F_dimension.jpg
+tiles\{B1,2F,3F}_{material,dimension}_{NW,NE,SW,SE}.jpg  (예: tiles\2F_dimension_NW.jpg) - 총 24장
+[출력 JSON 형식]
+{"version":"v3","rooms":[{"floor":"2F","room":"...","code":"DT-03","w_mm":0,"d_mm":0,"area_m2":0,"baseboard_m":0,"basis":"...","confidence":"high|mid|low|unknown"}],
+ "totals":{"DE-01":0,"DT-01":0,"DT-02":0,"DT-03":0,"CT-01":0,"CT-02":0,"CT-03":0,"floor_total":0,"baseboard_m":0},"notes":"..."}
+totals는 rooms의 합(null 제외)과 일치해야 한다.

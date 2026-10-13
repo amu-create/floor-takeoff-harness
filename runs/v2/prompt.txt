@@ -1,0 +1,19 @@
+[공통 규칙 - 반드시 지킬 것]
+- 너는 건축 실내 마감 물량을 산출하는 작업자다. 공사: 대한변호사협회 신회관 인테리어 공사(지하1층, 2층, 3층).
+- 입력은 아래 [입력 파일]에 적힌 이미지뿐이다. 다른 파일을 열거나, 폴더 목록을 보거나, 웹 검색을 하지 마라. (특히 data 폴더·내역서·엑셀 파일 금지)
+- 이미지 읽는 법: 먼저 ToolSearch 로 "select:mcp__remote-devices__Desktop_Commander__read_file" 를 로드하고, 그 도구로 각 경로를 읽는다.
+- 기준 폴더: D:\Users\Portfolio\작업\10_진행중\conpa-demo\inputs
+- 결과는 Write 도구로 /home/claude/conpa-demo/runs/v2/output.json 에 JSON 하나로 저장한다(UTF-8). JSON 외의 설명은 notes 필드에 넣는다.
+- 마지막 답변은 "저장 완료"와 totals 요약 한 줄만.
+
+[과제 v2 - 정해진 표 형식으로]
+아래 도면을 보고 실(방)마다 바닥재 물량을 표로 정리한 뒤 합계를 내라.
+코드: DE-01, DT-01, DT-02, DT-03, CT-01, CT-02, CT-03 (도면 태그 '01 DE' = DE-01, '02 DT' = DT-02 같은 식)
+각 실마다: 층, 실 이름, 바닥 코드, 가로(mm), 세로(mm), 면적(㎡), 걸레받이 길이(m), 근거(어떤 치수를 어떻게 읽었는지), 신뢰도(high/mid/low).
+치수를 직접 읽지 못하고 짐작한 값이면 근거에 '추정'이라고 써라.
+[입력 파일]
+overview\material_list.jpg, overview\B1_material.jpg, overview\2F_material.jpg, overview\3F_material.jpg
+[출력 JSON 형식]
+{"version":"v2","rooms":[{"floor":"B1","room":"서고","code":"DE-01","w_mm":0,"d_mm":0,"area_m2":0,"baseboard_m":0,"basis":"...","confidence":"mid"}],
+ "totals":{"DE-01":0,"DT-01":0,"DT-02":0,"DT-03":0,"CT-01":0,"CT-02":0,"CT-03":0,"floor_total":0,"baseboard_m":0},"notes":"..."}
+totals는 rooms의 합과 일치해야 한다.

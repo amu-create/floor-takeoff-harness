@@ -1,0 +1,7 @@
+[과제 v1 - 그냥 물어보기]
+아래 도면을 보고 바닥재 코드별 면적(㎡)과 걸레받이 총 길이(m)를 산출해줘.
+코드: DE-01, DT-01, DT-02, DT-03, CT-01, CT-02, CT-03 (도면 태그 '01 DE' = DE-01, '02 DT' = DT-02 같은 식)
+[입력 파일]
+overview\material_list.jpg, overview\B1_material.jpg, overview\2F_material.jpg, overview\3F_material.jpg
+[출력 JSON 형식]
+{"version":"v1","totals":{"DE-01":숫자,"DT-01":숫자,"DT-02":숫자,"DT-03":숫자,"CT-01":숫자,"CT-02":숫자,"CT-03":숫자,"floor_total":숫자,"baseboard_m":숫자},"notes":"..."}
