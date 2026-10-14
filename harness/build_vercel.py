@@ -22,7 +22,7 @@ head = f"""<!doctype html>
 """
 old_note = '산출근거서 엑셀(공종별집계 · 실별 산출근거 · 검토 필요 항목 · 실험 기록)은 메일에 첨부했습니다. 모든 합계는 실별 행에서 수식으로 계산됩니다.'
 assert old_note in html
-html = html.replace(old_note, f'<a href="files/floor_takeoff_basis.xlsx" download="{XLSX}">산출근거서 엑셀 받기</a> (공종별집계 · 실별 산출근거 · 검토 필요 항목 · 실험 기록). 모든 합계는 실별 행에서 수식으로 계산됩니다.')
+html = html.replace(old_note, f'<a href="files/floor_takeoff_basis.xlsx" download="{XLSX}">산출근거서 엑셀 받기</a> (공종별집계 · 실별 산출서(A·L·B 변수표) · 실별 산출근거 · 검토 필요 항목 · 실험 기록). 모든 합계는 실별 행에서 수식으로 계산됩니다.')
 old_foot = '<span>작업자 AI는 Claude Sonnet'
 assert old_foot in html
 html = html.replace(old_foot, f'<span><a href="{REPO}" target="_blank" rel="noopener">GitHub: 실험 지시문·결과·채점기 전체</a> · <a href="media/conpa_3d_tour.mp4">3D 투어 영상</a></span>\n  <span>작업자 AI는 Claude Sonnet', 1)

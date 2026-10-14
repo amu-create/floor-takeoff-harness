@@ -166,5 +166,74 @@ for i, s in enumerate(sc["versions"], 4):
         ws4.cell(row=i, column=c).number_format = "0.0%"
 ws4.cell(row=11, column=1, value="주의: v6 규칙은 검증 세트(19실)의 오차를 보고 찾았고 같은 세트로 평가했으므로 낙관적일 수 있음. 공사 1건·버전별 1회 실행.").font = Font(name=F, italic=True, color="666666")
 
+# ---------------- 실별 산출서 (변수표 형식) ----------------
+from openpyxl.drawing.image import Image as XLImage
+from PIL import Image as PImage, ImageDraw, ImageFont
+import io
+ws5 = wb.create_sheet("실별 산출서", 1)
+ws5["A1"] = "실별 산출서 - 실마다 면적 A·둘레 L·걸레받이 B를 먼저 정하고, 마감 품목은 그 변수로 계산"; ws5["A1"].font = Font(name=F, bold=True, size=13)
+ws5["A2"] = "파란 글씨 = AI가 도면에서 읽은 값. 물량 칸은 수식(변수 셀 참조). 형상 그림은 AI가 읽은 가로×세로로 그린 단순화 도형. 비정형 실은 가산·공제를 산식에 따로 표시."; ws5["A2"].font = Font(name=F, italic=True, color="666666")
+for i, w in enumerate([16, 12, 24, 38, 7, 62, 12], 1):
+    ws5.column_dimensions[get_column_letter(i)].width = w
+try:
+    KFONT = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 13)
+except Exception:
+    KFONT = ImageFont.load_default()
+def thumb(w, d):
+    W, Hh = 150, 120; im = PImage.new("RGB", (W, Hh), "white"); dr = ImageDraw.Draw(im)
+    s = min(100 / w, 80 / d); bw, bh = w * s, d * s; x0, y0 = (W - bw) / 2, (Hh - bh) / 2
+    dr.rectangle([x0, y0, x0 + bw, y0 + bh], fill=(226, 245, 200), outline=(80, 150, 40), width=3)
+    dr.text((W / 2, y0 - 9), f"{w/1000:.3f}", fill=(0, 0, 0), anchor="mm", font=KFONT)
+    dr.text((x0 + bw + 4, Hh / 2), f"{d/1000:.3f}", fill=(0, 0, 0), anchor="lm", font=KFONT)
+    b = io.BytesIO(); im.save(b, "PNG"); b.seek(0); return b
+hdr = ["도형", "부위", "품명", "규격", "단위", "산식", "물량"]
+row = 4
+def put(r, vals, font=B, fill=None):
+    for c, v in enumerate(vals, 1):
+        cell = ws5.cell(row=r, column=c, value=v); cell.font = font; cell.border = BOX; cell.alignment = Alignment(vertical="center", wrap_text=True)
+        if fill: cell.fill = fill
+SUB = PatternFill("solid", fgColor="EEF3F6")
+for no, r in enumerate(rooms, 1):
+    for c, v in enumerate(hdr, 1):
+        cell = ws5.cell(row=row, column=c, value=v); cell.font = H; cell.fill = HF; cell.border = BOX; cell.alignment = Alignment(horizontal="center")
+    row += 1
+    ws5.cell(row=row, column=1, value=f"실명 : {r['floor']} {r['room']}").font = BB
+    ws5.cell(row=row, column=3, value="개소 : 1").font = BB
+    ws5.cell(row=row, column=6, value=f"신뢰도 {r.get('confidence','-')}").font = Font(name=F, color="666666")
+    row += 1
+    w, d, a = r.get("w_mm"), r.get("d_mm"), r.get("area_m2")
+    rA = row
+    if w and d:
+        wd = w * d / 1e6
+        f = f"{w/1000:.3f} × {d/1000:.3f} = {wd:.3f}"
+        if abs(wd - a) > 0.05:
+            f += f"  {a-wd:+.3f}<{'가산' if a > wd else '공제'} - 산출근거서 No.{no}>"
+    else:
+        f = f"{a:.3f}<열린 공간 구분구적 - 산출근거서 No.{no}>"
+    put(row, ["A", "(면 적)", None, None, None, f, a]); ws5.cell(row=row, column=7).font = BLUE; row += 1
+    rL = row
+    if w and d and abs(w * d / 1e6 - a) <= 0.05:
+        put(row, ["L", "(둘 레)", None, None, None, f"2 × ({w/1000:.3f} + {d/1000:.3f})", f"=ROUND(2*({w/1000}+{d/1000}),3)"])
+    else:
+        put(row, ["L", "(둘 레)", None, None, None, "비정형 - 사각형 근사 생략", None])
+    row += 1
+    rB = row
+    put(row, ["B", "(걸레받이)", None, None, None, f"둘레 − 개구부(문·폴딩도어) - 산출근거서 No.{no}", r.get("baseboard_m")]); ws5.cell(row=row, column=7).font = BLUE; row += 1
+    put(row, ["H", "(마감높이)", None, None, None, "바닥 마감 범위 외", None]); row += 1
+    rS = row
+    put(row, [None, "[산 출 범 위]", None, None, None, None, None], fill=SUB); ws5.merge_cells(start_row=row, start_column=3, end_row=row, end_column=6); row += 1
+    name, spec = ITEM[r["code"]]
+    put(row, [None, "바닥", name, spec, "M2", f"A<면적> − 0<기둥 공제>", f"=G{rA}-0"]); row += 1
+    put(row, [None, "걸레받이", "걸레받이 설치", "MDF+인테리어필름 T=9, H=30", "M", "B<걸레받이>", f"=G{rB}"]); row += 1
+    put(row, [None, "[ 끝 ]", None, None, None, None, None], fill=SUB); row += 1
+    if w and d:
+        img = XLImage(thumb(w, d)); img.width, img.height = 88, 70
+        ws5.add_image(img, f"A{rS + 1}")
+    for rr in range(rS + 1, rS + 4):
+        ws5.row_dimensions[rr].height = 25
+    ws5.cell(row=rA + 1, column=7).number_format = "0.000"
+    row += 1
+ws5.freeze_panes = "A4"
+
 out = ROOT / "site/assets/산출근거서_대한변협신회관_바닥마감.xlsx"
 wb.save(out); print(out)
